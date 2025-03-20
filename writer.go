@@ -273,6 +273,7 @@ func (w *Writer) SetFields(fields []Field) error {
 	if err != nil {
 		return fmt.Errorf("Failed to open %s.dbf: %v", w.filename, err)
 	}
+	defer w.dbf.Close()
 	w.dbfFields = fields
 
 	// calculate record length
@@ -300,6 +301,12 @@ func (w *Writer) SetFields(fields []Field) error {
 // dbfRecordLength number of bytes. The first byte is a
 // space that indicates a new record.
 func (w *Writer) writeEmptyRecord() {
+	var err error
+	w.dbf, err = os.OpenFile(w.filename+".dbf", os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer w.dbf.Close()
 	w.dbf.Seek(0, io.SeekEnd)
 	buf := make([]byte, w.dbfRecordLength)
 	buf[0] = ' '
